@@ -1,6 +1,4 @@
 # SOFA_ZOO
-This repository is part of the project "LapGym - An Open Source Framework for Reinforcement Learning in Robot-Assisted Laparoscopic Surgery".
-It provides the code for the reinforcement learning experiments as described in the [LapGym paper](https://www.jmlr.org/papers/v24/23-0207.html) for the environments of [sofa_env](https://github.com/ScheiklP/sofa_env).
 
 ## My Contributions
 
@@ -33,6 +31,8 @@ python envs/evaluation/evaluate_reach.py
 Python, Stable-Baselines3, Gymnasium, SOFA / SofaPython3, NumPy
 
 # About the Original Project
+This repository is part of the project "LapGym - An Open Source Framework for Reinforcement Learning in Robot-Assisted Laparoscopic Surgery".
+It provides the code for the reinforcement learning experiments as described in the [LapGym paper](https://www.jmlr.org/papers/v24/23-0207.html) for the environments of [sofa_env](https://github.com/ScheiklP/sofa_env).
 
 ## Dependencies
 * ffmpeg for recording sample videos (`sudo apt install ffmpeg`)
