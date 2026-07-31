@@ -1,0 +1,118 @@
+import json
+
+from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack, VecNormalize
+
+from stable_baselines3 import SAC
+from gymnasium.wrappers import TimeLimit
+
+from sofa_env.scenes.search_for_point.search_for_point_env import RenderMode, SearchForPointEnv, ActionType, ObservationType, ActiveVision
+
+# Load the trained policy
+model = SAC.load("../search_for_point/runs/SACSTATE_AV_13saved_model.pth")
+
+observation_type = ObservationType.STATE
+active_vision = True
+
+# Recreate the SAME environment setup used in training
+
+reward_amount_dict = {
+        ActiveVision.DEACTIVATED: {
+            "poi_is_in_frame": 0.01,
+            "relative_camera_distance_error_to_poi": -0.01,
+            "delta_relative_camera_distance_error_to_poi": -0.01,
+            "relative_pixel_distance_poi_to_image_center": -0.001,
+            "delta_relative_pixel_distance_poi_to_image_center": -0.001,
+            "successful_task": 100.0,
+        },
+        ActiveVision.CAUTER: {
+            "collision_cauter": -0.001,
+            "relative_distance_cauter_target": -0.0005,
+            "relative_delta_distance_cauter_target": -5.0,
+            "cauter_touches_target": 0.0,
+            "successful_task": 100.0,
+            "cauter_action_violated_state_limits": -0.0,
+        },
+    }
+
+env_kwargs = {
+        "image_shape": (64, 64),
+        # "window_size": (600, 600),
+        "observation_type": observation_type,
+        "render_mode": RenderMode.NONE,
+        "time_step": 0.1,
+        "frame_skip": 1,
+        "action_type": ActionType.CONTINUOUS,
+        "reward_amount_dict": reward_amount_dict,
+        "active_vision_mode": ActiveVision.CAUTER if active_vision else ActiveVision.DEACTIVATED,
+    }
+
+env = SearchForPointEnv(**env_kwargs)
+env = TimeLimit(env, max_episode_steps=500)
+env = DummyVecEnv([lambda: env])
+env = VecFrameStack(env, n_stack=4)
+env = VecNormalize.load("runs/SACSTATE_AV_13vecnormalize.pkl", env)
+env.training = False
+env.norm_reward = False
+
+n_episodes = 100
+results = []
+
+for ep in range(n_episodes):
+    obs = env.reset()
+    done = False
+    
+    ep_collisions = 0
+    ep_reward = 0.0
+    ep_success = 0
+    ep_steps = 0
+    
+    while not done:
+        action, _ = model.predict(obs, deterministic=True)
+        obs, reward, dones, infos = env.step(action)
+        done = dones[0]
+        info = infos[0]
+        
+        if info.get("collision_cauter", 0.0) > 0:
+            ep_collisions += 1
+
+        if info.get("successful_task", 0.0) > 0:
+            ep_success = 1
+            
+        ep_reward += float(reward[0])
+        ep_steps += 1
+        
+    results.append(
+        {
+            "episode": ep,
+            "collisions": ep_collisions,
+            "reward": ep_reward,
+            "success": ep_success,
+            "steps": ep_steps
+        }
+    )
+
+    print(
+        f"Episode {ep}: "
+        f"collisions={ep_collisions}, success={ep_success}, "
+        f"reward={ep_reward:.2f}, steps={ep_steps}"
+    )
+
+avg_collisions = sum(r["collisions"] for r in results) / n_episodes
+success_rate = sum(r["success"] for r in results) / n_episodes
+
+summary = {
+    "avg_collisions": avg_collisions,
+    "success_rate": success_rate,
+    "n_episodes": n_episodes
+}
+
+env.close()
+
+with open("violation_log13.json", "w") as f:
+    json.dump({"episodes": results, "summary": summary}, f, indent=2)
+
+
+print("\nSummary:")
+print(f"Average collisions per episode: {avg_collisions:.2f}")
+print(f"Success rate: {success_rate:.2f}")
+print("Saved to violation_log13.json")
