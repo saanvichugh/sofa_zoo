@@ -32,6 +32,8 @@ python envs/evaluation/evaluate_reach.py
 
 Python, Stable-Baselines3, Gymnasium, SOFA / SofaPython3, NumPy
 
+# About the Original Project
+
 ## Dependencies
 * ffmpeg for recording sample videos (`sudo apt install ffmpeg`)
 
@@ -44,7 +46,7 @@ Python, Stable-Baselines3, Gymnasium, SOFA / SofaPython3, NumPy
 
 - Install this repository with `pip install -e .`.
 
-## Citing
+## Citing the Original Work
 If you use the project in your work, please consider citing it with:
 ```bibtex
 @article{JMLR:v24:23-0207,
