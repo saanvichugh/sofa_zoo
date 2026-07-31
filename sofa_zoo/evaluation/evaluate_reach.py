@@ -8,7 +8,7 @@ from gymnasium.wrappers import TimeLimit
 from sofa_env.scenes.reach.reach_env import ActionType, RenderMode, ObservationType, ReachEnv
 
 # Load the trained policy
-model = SAC.load("runs/SAC_STATE_continuous_actions=True_sphere_radius=0.008_10saved_model.pth")
+model = SAC.load("../reach/runs/SAC_STATE_continuous_actions=True_sphere_radius=0.008_10saved_model.pth")
 
 observation_type = ObservationType.STATE
 
