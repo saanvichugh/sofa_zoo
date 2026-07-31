@@ -21,3 +21,4 @@ wandb
 models
 error-log*
 output-log*
+violation_log*.json
